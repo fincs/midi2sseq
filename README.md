@@ -24,6 +24,5 @@ Supported events
 To do
 -----
 
-- Better duplicate note handling
 - Implement more MIDI commands
 - Some SSEQ commands are not implemented yet (modulation, portamento, pitch sweep): please help!

@@ -1,7 +1,15 @@
 #pragma once
 #include <vector>
+#include <map>
 #include "endian.h"
 #include "MidiReader.h"
+
+using std::multimap;
+using std::pair;
+
+typedef multimap<uchar, int> HeldNoteMap;
+typedef HeldNoteMap::iterator HeldNoteIter;
+typedef pair<uchar, int> HeldNote;
 
 enum
 {
@@ -32,7 +40,8 @@ typedef struct
 class SSeqConv
 {
 	vector<CnvEvent> chn[16];
-	uint relData[16][128];
+	HeldNoteMap relData[16];
+
 	uchar chnusage[16];
 	bool SaveTrack(FileClass&, CnvTrack&);
 public:

@@ -21,7 +21,6 @@ bool SSeqConv::ConvertMidi(MidiReader& midi)
 	TrackStat* tracksts = (TrackStat*) calloc(ntracks, sizeof(TrackStat));
 	int finishtracks = 0;
 	memset(chnusage, 0, sizeof(chnusage));
-	memset(relData, 0xFF, sizeof(relData));
 
 	for (uint time = 0; finishtracks < ntracks; time ++)
 	{
@@ -64,27 +63,20 @@ bool SSeqConv::ConvertMidi(MidiReader& midi)
 						ev.param2 = midiev.vel;
 						chn[midiev.chn].push_back(ev);
 						chnusage[midiev.chn] = 1;
-						uint& notepos = relData[midiev.chn][midiev.note];
-						if (notepos != 0xFFFFFFFF)
-						{
-							CnvEvent& note = chn[midiev.chn][(int)notepos];
-							printf("WARNING: note on on active note! Track %d, pos %d\n", i, trackst->pos);
-							note.duration = ev.time - note.time; // release the note first
-						}
-						notepos = chn[midiev.chn].size() - 1;
+						relData[midiev.chn].insert(HeldNote(midiev.note, chn[midiev.chn].size() - 1));
 						break;
 					}
 
 					case EV_NOTEOFF:
 					{
-						uint& oldevpos = relData[midiev.chn][midiev.note];
-						if (oldevpos != 0xFFFFFFFF)
+						HeldNoteIter it;
+						pair<HeldNoteIter, HeldNoteIter> ret = relData[midiev.chn].equal_range(midiev.note);
+						for (it = ret.first; it != ret.second; it ++)
 						{
-							CnvEvent& oldev = chn[midiev.chn][(int)oldevpos];
+							CnvEvent& oldev = chn[midiev.chn][(*it).second];
 							oldev.duration = ev.time - oldev.time;
-							oldevpos = 0xFFFFFFFF;
 						}
-						else printf("WARNING: note off on non-existant note! Track %d, pos %d\n", i, trackst->pos);
+						relData[midiev.chn].erase(midiev.note);
 						break;
 					}
 
