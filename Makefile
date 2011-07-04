@@ -13,7 +13,7 @@ export STRIP := strip
 CFLAGS   := -g0 -Wall -O2
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions
 
-LDFLAGS := -g0
+LDFLAGS := -g0 -static-libgcc -static-libstdc++
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
