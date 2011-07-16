@@ -17,6 +17,7 @@ Supported events
 
 - Note on/off
 - Volume, pan & expression
+- Pitch bend & pitch bend range
 - Patch change
 - Tempo
 - Loop points via `loopStart` and `loopEnd` markers

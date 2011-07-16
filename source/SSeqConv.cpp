@@ -7,6 +7,7 @@ typedef struct
 {
 	uint wait;
 	uint pos;
+	uint dataentry;
 } TrackStat;
 
 static inline uint CnvTime(uint time, uint tpb)
@@ -82,8 +83,16 @@ bool SSeqConv::ConvertMidi(MidiReader& midi)
 
 					case EV_CONTROLLER:
 					{
+						uint& dataentry = trackst->dataentry;
 						switch(midiev.number)
 						{
+							case 6:
+								if (dataentry == 0)
+								{
+									ev.cmd = CNV_PITCHBENDRANGE;
+									ev.param1 = midiev.val;
+								}
+								break;
 							case 7:
 								ev.cmd = CNV_VOL;
 								ev.param1 = midiev.val;
@@ -96,8 +105,26 @@ bool SSeqConv::ConvertMidi(MidiReader& midi)
 								ev.cmd = CNV_EXPR;
 								ev.param1 = midiev.val;
 								break;
+							case 100:
+								dataentry &= ~0x7F;
+								dataentry |= (uint)midiev.val;
+								break;
+							case 101:
+								dataentry &= ~(0x7F<<7);
+								dataentry |= (uint)midiev.val << 7;
+								break;
 						}
 						if (ev.cmd) chn[midiev.chn].push_back(ev); //, chnusage[midiev.chn] = 1;
+						break;
+					}
+
+					case EV_PITCHBEND:
+					{
+						ev.cmd = CNV_PITCHBEND;
+						int pb = ((int)midiev.valwide - 0x2000) / 64;
+						ev.param1 = ((uint)pb) & 0xFF;
+						chn[midiev.chn].push_back(ev);
+						//chnusage[midiev.chn] = 1;
 						break;
 					}
 
@@ -121,6 +148,7 @@ bool SSeqConv::ConvertMidi(MidiReader& midi)
 							ev.cmd = CNV_LOOPEND;
 							for (int j = 0; j < 16; j ++) chn[j].push_back(ev);
 						}
+						break;
 					}
 			
 					case EV_TEMPO:
@@ -268,6 +296,14 @@ bool SSeqConv::SaveTrack(FileClass& f, CnvTrack& trinfo)
 				break;
 			case CNV_EXPR:
 				f.WriteUChar(0xD5); // EXPRESSION
+				f.WriteUChar(ev.param1 & 0x7F);
+				break;
+			case CNV_PITCHBEND:
+				f.WriteUChar(0xC4); // PITCH BEND
+				f.WriteUChar(ev.param1 & 0xFF);
+				break;
+			case CNV_PITCHBENDRANGE:
+				f.WriteUChar(0xC5); // PITCH BEND RANGE
 				f.WriteUChar(ev.param1 & 0x7F);
 				break;
 			case CNV_PATCH:

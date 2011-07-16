@@ -95,7 +95,7 @@ bool MidiReader::LoadTrack(FileClass& f, vector<MidiEvent>& track)
 
 				case 0xE0:
 					ev.cmd = EV_PITCHBEND;
-					ev.valwide = f.ReadUChar() | (f.ReadUChar() << 7);
+					ev.valwide = (ushort)f.ReadUChar() | ((ushort)f.ReadUChar() << 7);
 					break;
 			}
 		}else
