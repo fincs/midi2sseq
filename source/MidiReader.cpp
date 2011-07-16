@@ -25,7 +25,9 @@ bool MidiReader::Load(const char* filename)
 	for (int i = 0; i < trkcnt; i ++)
 	{
 		tracks.push_back(vector<MidiEvent>());
-		LoadTrack(f, tracks.back());
+		vector<MidiEvent>& curtrack = tracks.back();
+		LoadTrack(f, curtrack);
+		if (curtrack.size() == 0) tracks.pop_back();
 	}
 
 	return true;
